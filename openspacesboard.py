@@ -5,12 +5,11 @@ from contextlib import closing
 from flask import Flask, g, jsonify, request, make_response, redirect, url_for, session
 from flask_oauthlib.client import OAuth
 
-# Configuration variables
-DATABASE = 'C:\\tmp\\openspacesboard.db'
-DEBUG = True
-SECRET_KEY = "secret"
-USERNAME = 'admin'
-PASSWORD = 'test'
+
+app = Flask(__name__)
+app.config.from_object('config')
+
+
 
 class InvalidUsage(Exception):
     status_code = 400
@@ -26,9 +25,6 @@ class InvalidUsage(Exception):
         rv = dict(self.payload or ())
         rv['message'] = self.message
         return rv
-
-app = Flask(__name__)
-app.config.from_object(__name__)
 
 
 oauth = OAuth(app)
@@ -130,8 +126,8 @@ def get_sessions():
     Return a (json) list of sessions
     :return: A json formatted list of sessions
     """
-    cur = g.db.execute('select title, description, convener from sessions')
-    sessions = [dict(title=row[0], description=row[1], convener=row[2]) for row in cur.fetchall()]
+    cur = g.db.execute('select title, description, convener, space_id from sessions')
+    sessions = [dict(title=row[0], description=row[1], convener=row[2], space_id=row[3]) for row in cur.fetchall()]
     return jsonify({'sessions': sessions})
 
 
@@ -163,17 +159,19 @@ def create_session():
         session = {
             'title': json['title'],
             'description': json['description'],
-            'convener': json['convener']
+            'convener': json['convener'],
+            'space_id': json['space_id']
         }
 
-        g.db.execute('insert into sessions (title, description, convener) values (?, ?, ?)', [session['title'],
-                                                                                              session['description'],
-                                                                                              session['convener']])
+        g.db.execute('insert into sessions (title, description, convener, space_id) values (?, ?, ?, ?)', [session['title'],
+                                                                                                        session['description'],
+                                                                                                        session['convener'],
+                                                                                                        session['space_id']])
 
         g.db.commit()
         return jsonify(session)
-    except Exception:
-        raise InvalidUsage('Invalid request. Request json: {}'.format(json), status_code=400)
+    except Exception as err:
+        raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)
 
 
 @app.route('/board/api/1.0/sessions/<int:session_id>', methods=['PUT'])
@@ -344,6 +342,7 @@ def delete_space(space_id):
         return jsonify({"success": "true"})
     else:
         raise InvalidUsage('space with ID: {} does not exist'.format(space_id), status_code=400)
+
 
 if __name__ == '__main__':
     app.run()
