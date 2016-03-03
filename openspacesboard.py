@@ -222,5 +222,99 @@ def delete_session(session_id):
         raise InvalidUsage('Session with ID: {} does not exist'.format(session_id), status_code=400)
 
 
+@app.route('/board/api/1.0/spaces', methods=['GET'])
+def get_spaces():
+    """
+    Return a (json) list of spaces
+    :return: A json formatted list of spaces
+    """
+    cur = g.db.execute('select title, description, convener from spaces')
+    spaces = [dict(title=row[0], description=row[1], convener=row[2]) for row in cur.fetchall()]
+    return jsonify({'spaces': spaces})
+
+
+@app.route('/board/api/1.0/spaces/<int:space_id>', methods=['GET'])
+def get_space(space_id):
+    """
+    Return a single space based on an ID
+    :param space_id: The <int> ID of the space to return
+    :return: A single space based on space_id
+    """
+    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    space = cursor.fetchone()
+
+    if space is not None:
+        return jsonify({'space': space})
+    else:
+        raise InvalidUsage('space with ID: {} does not exist'.format(space_id), status_code=400)
+
+
+@app.route('/board/api/1.0/spaces', methods=['POST'])
+def create_space():
+    """
+    Create a new space from a json object
+    :return: The json representing the newly created space
+    """
+    try:
+        json = request.json
+
+        space = {
+            'title': json['name'],
+            'description': json['location']
+        }
+
+        g.db.execute('insert into spaces (title, description, convener) values (?, ?, ?)', [space['name'],
+                                                                                            space['location']])
+
+        g.db.commit()
+        return jsonify(space)
+    except Exception:
+        raise InvalidUsage('Invalid request. Request json: {}'.format(json), status_code=400)
+
+
+@app.route('/board/api/1.0/spaces/<int:space_id>', methods=['PUT'])
+def update_space(space_id):
+    """
+    Update a single space from a json object
+    :param space_id: The <int> id of the space to update
+    :return: The json object representing the newly updated space
+    """
+    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    space = cursor.fetchone()
+
+    if space is not None:
+        try:
+            json = request.json
+
+            g.db.execute('update spaces set name=?, location=? where id=?', [json['name'],
+                                                                                               json['location'],
+                                                                                               space_id])
+
+            g.db.commit()
+            return jsonify(json)
+        except Exception:
+            raise InvalidUsage('Invalid request. Request json: {}'.format(json), status_code=400)
+    else:
+        raise InvalidUsage('space with ID: {} does not exist'.format(space_id), status_code=400)
+
+
+@app.route('/board/api/1.0/spaces/<int:space_id>', methods=['DELETE'])
+def delete_space(space_id):
+    """
+    Delete a single space based on the space id
+    :param space_id: The <int> id of the space to delete
+    :return: A json object indicating if the deletion was a success or not
+    """
+    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    space = cursor.fetchone()
+
+    if space is not None:
+        g.db.execute('delete from spaces where id = ?', [space_id])
+        g.db.commit()
+
+        return jsonify({"success": "true"})
+    else:
+        raise InvalidUsage('space with ID: {} does not exist'.format(space_id), status_code=400)
+
 if __name__ == '__main__':
     app.run()
