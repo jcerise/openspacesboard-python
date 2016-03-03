@@ -228,7 +228,7 @@ def get_spaces():
     Return a (json) list of spaces
     :return: A json formatted list of spaces
     """
-    cur = g.db.execute('select title, description, convener from spaces')
+    cur = g.db.execute('select * from spaces')
     spaces = [dict(title=row[0], description=row[1], convener=row[2]) for row in cur.fetchall()]
     return jsonify({'spaces': spaces})
 
@@ -260,11 +260,17 @@ def create_space():
 
         space = {
             'title': json['name'],
-            'description': json['location']
+            'location_id': json['location_id'],
+            'event_date': json['event_date'],
+            'start_time': json['start_time'],
+            'end_time': json['end_time']
         }
 
-        g.db.execute('insert into spaces (title, description, convener) values (?, ?, ?)', [space['name'],
-                                                                                            space['location']])
+        g.db.execute('insert into spaces (name, location_id, event_date, start_time, end_time) values (?, ?, ?, ?, ?)', [space['name'],
+                                                                                                                         space['location_id'],
+                                                                                                                         space['event_date'],
+                                                                                                                         space['start_time'],
+                                                                                                                         space['end_time']])
 
         g.db.commit()
         return jsonify(space)
@@ -285,10 +291,33 @@ def update_space(space_id):
     if space is not None:
         try:
             json = request.json
+            if 'name' in json:
+                name = json['name']
+            else:
+                name = space['name']
+            if 'location_id' in json:
+                location_id = json['location_id']
+            else:
+                location_id = space['location_id']
+            if 'event_date' in json:
+                event_date = json['event_date']
+            else:
+                event_date = space['event_date']
+            if 'start_time' in json:
+                start_time = json['start_time']
+            else:
+                start_time = json['start_time']
+            if 'end_time' in json:
+                end_time = json['end_time']
+            else:
+                end_time = json['end_time']
 
-            g.db.execute('update spaces set name=?, location=? where id=?', [json['name'],
-                                                                                               json['location'],
-                                                                                               space_id])
+            g.db.execute('update spaces set name=?, location_id=?, event_date=?, start_time=?, end_time=?, where id=?', [name,
+                                                                                                                        location_id,
+                                                                                                                        event_date,
+                                                                                                                        start_time,
+                                                                                                                        end_time,
+                                                                                                                        space_id])
 
             g.db.commit()
             return jsonify(json)
