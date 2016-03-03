@@ -11,7 +11,7 @@ create table sessions (
 drop table if exists spaces;
 create table spaces (
   id integer primary key autoincrement,
-  name text not null,
+  space_name text not null,
   location_id integer not null,
   event_date date not null,
   start_time datetime not null,

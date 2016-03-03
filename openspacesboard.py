@@ -228,8 +228,8 @@ def get_spaces():
     Return a (json) list of spaces
     :return: A json formatted list of spaces
     """
-    cur = g.db.execute('select * from spaces')
-    spaces = [dict(title=row[0], description=row[1], convener=row[2]) for row in cur.fetchall()]
+    cur = g.db.execute('select space_name, location_id, event_date, start_time, end_time from spaces')
+    spaces = [dict(space_name=row[0], location_id=row[1], event_date=row[2], start_time=row[3], end_time=row[4]) for row in cur.fetchall()]
     return jsonify({'spaces': spaces})
 
 
@@ -259,14 +259,14 @@ def create_space():
         json = request.json
 
         space = {
-            'title': json['name'],
+            'space_name': json['space_name'],
             'location_id': json['location_id'],
             'event_date': json['event_date'],
             'start_time': json['start_time'],
             'end_time': json['end_time']
         }
 
-        g.db.execute('insert into spaces (name, location_id, event_date, start_time, end_time) values (?, ?, ?, ?, ?)', [space['name'],
+        g.db.execute('insert into spaces (space_name, location_id, event_date, start_time, end_time) values (?, ?, ?, ?, ?)', [space['space_name'],
                                                                                                                          space['location_id'],
                                                                                                                          space['event_date'],
                                                                                                                          space['start_time'],
@@ -274,8 +274,8 @@ def create_space():
 
         g.db.commit()
         return jsonify(space)
-    except Exception:
-        raise InvalidUsage('Invalid request. Request json: {}'.format(json), status_code=400)
+    except Exception as err:
+        raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)
 
 
 @app.route('/board/api/1.0/spaces/<int:space_id>', methods=['PUT'])
@@ -291,10 +291,10 @@ def update_space(space_id):
     if space is not None:
         try:
             json = request.json
-            if 'name' in json:
-                name = json['name']
+            if 'space_name' in json:
+                space_name = json['space_name']
             else:
-                name = space['name']
+                space_name = space['space_name']
             if 'location_id' in json:
                 location_id = json['location_id']
             else:
@@ -312,7 +312,7 @@ def update_space(space_id):
             else:
                 end_time = json['end_time']
 
-            g.db.execute('update spaces set name=?, location_id=?, event_date=?, start_time=?, end_time=?, where id=?', [name,
+            g.db.execute('update spaces set space_name=?, location_id=?, event_date=?, start_time=?, end_time=? where id=?', [space_name,
                                                                                                                         location_id,
                                                                                                                         event_date,
                                                                                                                         start_time,
@@ -321,8 +321,8 @@ def update_space(space_id):
 
             g.db.commit()
             return jsonify(json)
-        except Exception:
-            raise InvalidUsage('Invalid request. Request json: {}'.format(json), status_code=400)
+        except Exception as err:
+            raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)
     else:
         raise InvalidUsage('space with ID: {} does not exist'.format(space_id), status_code=400)
 
