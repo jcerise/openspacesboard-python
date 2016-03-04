@@ -1,3 +1,4 @@
 .idea
 openspacesboard.db
 *.pyc
+app.db

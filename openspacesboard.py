@@ -3,12 +3,17 @@ from contextlib import closing
 
 
 from flask import Flask, g, jsonify, request, make_response, redirect, url_for, session
+from flask.ext.sqlalchemy import SQLAlchemy
 from flask_oauthlib.client import OAuth
 
 
 app = Flask(__name__)
 app.config.from_object('config')
+db = SQLAlchemy(app)
 
+from Sessions import model
+from Spaces import model
+from Locations import model
 
 
 class InvalidUsage(Exception):
@@ -94,7 +99,7 @@ def connect_db():
     Connect to the database specified in the settings file (assumes SQLite3)
     :return:
     """
-    return sqlite3.connect(app.config['DATABASE'])
+    return sqlite3.connect(app.config['DATABASE_PATH'])
 
 
 def init_db():
@@ -126,7 +131,7 @@ def get_sessions():
     Return a (json) list of sessions
     :return: A json formatted list of sessions
     """
-    cur = g.db.execute('select title, description, convener, space_id from sessions')
+    cur = g.db.execute('select title, description, convener, space_id from session')
     sessions = [dict(title=row[0], description=row[1], convener=row[2], space_id=row[3]) for row in cur.fetchall()]
     return jsonify({'sessions': sessions})
 
@@ -138,7 +143,7 @@ def get_session(session_id):
     :param session_id: The <int> ID of the session to return
     :return: A single session based on session_id
     """
-    cursor = g.db.execute('select * from sessions where id = ?', str(session_id))
+    cursor = g.db.execute('select * from session where id = ?', str(session_id))
     session = cursor.fetchone()
 
     if session is not None:
@@ -163,7 +168,7 @@ def create_session():
             'space_id': json['space_id']
         }
 
-        g.db.execute('insert into sessions (title, description, convener, space_id) values (?, ?, ?, ?)', [session['title'],
+        g.db.execute('insert into session (title, description, convener, space_id) values (?, ?, ?, ?)', [session['title'],
                                                                                                         session['description'],
                                                                                                         session['convener'],
                                                                                                         session['space_id']])
@@ -181,14 +186,14 @@ def update_session(session_id):
     :param session_id: The <int> id of the session to update
     :return: The json object representing the newly updated session
     """
-    cursor = g.db.execute('select * from sessions where id = ?', str(session_id))
+    cursor = g.db.execute('select * from session where id = ?', str(session_id))
     session = cursor.fetchone()
 
     if session is not None:
         try:
             json = request.json
 
-            g.db.execute('update sessions set title=?, description=?, convener=? where id=?', [json['title'],
+            g.db.execute('update session set title=?, description=?, convener=? where id=?', [json['title'],
                                                                                                json['description'],
                                                                                                json['convener'],
                                                                                                session_id])
@@ -208,11 +213,11 @@ def delete_session(session_id):
     :param session_id: The <int> id of the session to delete
     :return: A json object indicating if the deletion was a success or not
     """
-    cursor = g.db.execute('select * from sessions where id = ?', str(session_id))
+    cursor = g.db.execute('select * from session where id = ?', str(session_id))
     session = cursor.fetchone()
 
     if session is not None:
-        g.db.execute('delete from sessions where id = ?', [session_id])
+        g.db.execute('delete from session where id = ?', [session_id])
         g.db.commit()
 
         return jsonify({"success": "true"})
@@ -226,7 +231,7 @@ def get_spaces():
     Return a (json) list of spaces
     :return: A json formatted list of spaces
     """
-    cur = g.db.execute('select space_name, location_id, event_date, start_time, end_time from spaces')
+    cur = g.db.execute('select space_name, location_id, event_date, start_time, end_time from space')
     spaces = [dict(space_name=row[0], location_id=row[1], event_date=row[2], start_time=row[3], end_time=row[4]) for row in cur.fetchall()]
     return jsonify({'spaces': spaces})
 
@@ -238,7 +243,7 @@ def get_space(space_id):
     :param space_id: The <int> ID of the space to return
     :return: A single space based on space_id
     """
-    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    cursor = g.db.execute('select * from space where id = ?', str(space_id))
     space = cursor.fetchone()
 
     if space is not None:
@@ -264,7 +269,7 @@ def create_space():
             'end_time': json['end_time']
         }
 
-        g.db.execute('insert into spaces (space_name, location_id, event_date, start_time, end_time) values (?, ?, ?, ?, ?)', [space['space_name'],
+        g.db.execute('insert into space (space_name, location_id, event_date, start_time, end_time) values (?, ?, ?, ?, ?)', [space['space_name'],
                                                                                                                          space['location_id'],
                                                                                                                          space['event_date'],
                                                                                                                          space['start_time'],
@@ -283,7 +288,7 @@ def update_space(space_id):
     :param space_id: The <int> id of the space to update
     :return: The json object representing the newly updated space
     """
-    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    cursor = g.db.execute('select * from space where id = ?', str(space_id))
     space = cursor.fetchone()
 
     if space is not None:
@@ -310,7 +315,7 @@ def update_space(space_id):
             else:
                 end_time = json['end_time']
 
-            g.db.execute('update spaces set space_name=?, location_id=?, event_date=?, start_time=?, end_time=? where id=?', [space_name,
+            g.db.execute('update space set space_name=?, location_id=?, event_date=?, start_time=?, end_time=? where id=?', [space_name,
                                                                                                                         location_id,
                                                                                                                         event_date,
                                                                                                                         start_time,
@@ -332,11 +337,11 @@ def delete_space(space_id):
     :param space_id: The <int> id of the space to delete
     :return: A json object indicating if the deletion was a success or not
     """
-    cursor = g.db.execute('select * from spaces where id = ?', str(space_id))
+    cursor = g.db.execute('select * from space where id = ?', str(space_id))
     space = cursor.fetchone()
 
     if space is not None:
-        g.db.execute('delete from spaces where id = ?', [space_id])
+        g.db.execute('delete from space where id = ?', [space_id])
         g.db.commit()
 
         return jsonify({"success": "true"})
