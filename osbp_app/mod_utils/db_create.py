@@ -4,7 +4,7 @@ import os
 from migrate.versioning import api
 
 from config import SQLALCHEMY_MIGRATE_REPO, SQLALCHEMY_DATABASE_URI
-from openspacesboard import db
+from osbp_app import db
 
 db.create_all()
 if not os.path.exists(SQLALCHEMY_MIGRATE_REPO):
