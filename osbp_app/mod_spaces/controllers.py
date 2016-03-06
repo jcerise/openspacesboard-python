@@ -16,8 +16,8 @@ def get_spaces():
     :return: A json formatted list of spaces
     """
     spaces = ConferenceSpace.query.all()
-    spaces = [dict(space_name=row.space_name, location_id=row.location_id, event_date=row.event_date,
-                     start_time=row.start_time, end_time=row.end_time) for row in spaces]
+    spaces = [dict(id=row.id, space_name=row.space_name, location_id=row.location_id, event_date=row.event_date,
+                   start_time=row.start_time, end_time=row.end_time) for row in spaces]
     return jsonify({'spaces': spaces})
 
 
@@ -31,7 +31,7 @@ def get_space(space_id):
     space = ConferenceSpace.query.get(space_id)
 
     if space is not None:
-        space = dict(space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
+        space = dict(id=row.id, space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
                      start_time=space.start_time, end_time=space.end_time)
         return jsonify({'space': space})
     else:

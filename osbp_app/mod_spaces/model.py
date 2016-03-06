@@ -8,6 +8,7 @@ class ConferenceSpace(db.Model):
     event_date = db.Column(db.DateTime)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
+    sessions = db.relationship('ConferenceSession', backref='space', lazy='dynamic')
 
     def __init__(self, space_name, location_id, event_date, start_time, end_time):
         self.space_name = space_name

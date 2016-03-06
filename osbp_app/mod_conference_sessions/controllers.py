@@ -13,8 +13,18 @@ def get_sessions():
     :return: A json formatted list of sessions
     """
     sessions = ConferenceSession.query.all()
-    sessions = [dict(title=row.title, description=row.description, convener=row.convener, space_id=row.space_id) for row in sessions]
-    return jsonify({'sessions': sessions})
+
+    sessions_list = []
+    for session in sessions:
+        session_space = session.space
+        session_location = session_space.location
+        timespan = {'start_time': session_space.start_time, 'end_time': session_space.end_time}
+        session = dict(id=session.id, title=session.title, description=session.description, convener=session.convener,
+                       space_name=session_space.space_name, location=session_location.name,
+                       date=session_space.event_date, timespan=timespan)
+        sessions_list.append(session)
+
+    return jsonify({'sessions': sessions_list})
 
 
 @mod_session.route('/api/1.0/<int:session_id>', methods=['GET'])
@@ -27,7 +37,12 @@ def get_session(session_id):
     session = ConferenceSession.query.get(session_id)
 
     if session is not None:
-        session = dict(title=session.title, description=session.description, convener=session.convener, space_id=session.space_id)
+        session_space = session.space
+        session_location = session_space.location
+        timespan = {'start_time': session_space.start_time, 'end_time': session_space.end_time}
+        session = dict(id=session.id, title=session.title, description=session.description, convener=session.convener,
+                       space_name=session_space.space_name, location=session_location.name,
+                       date=session_space.event_date, timespan=timespan)
         return jsonify({'session': session})
     else:
         raise InvalidUsage('ConferenceSession with ID: {} does not exist'.format(session_id), status_code=400)
@@ -99,4 +114,5 @@ def delete_session(session_id):
         return jsonify({"success": "true"})
     else:
         raise InvalidUsage('ConferenceSession with ID: {} does not exist'.format(session_id), status_code=400)
+
 

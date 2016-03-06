@@ -13,7 +13,7 @@ def get_locations():
     :return: A json formatted list of locations
     """
     locations = ConferenceLocation.query.all()
-    locations = [dict(name=row.name) for row in locations]
+    locations = [dict(id=row.id, name=row.name) for row in locations]
     return jsonify({'locations': locations})
 
 
@@ -27,7 +27,7 @@ def get_location(location_id):
     location = ConferenceLocation.query.get(location_id)
 
     if location is not None:
-        location = dict(name=location.name)
+        location = dict(id=location.id, name=location.name)
         return jsonify({'location': location})
     else:
         raise InvalidUsage('ConferenceLocation with ID: {} does not exist'.format(location_id), status_code=400)
