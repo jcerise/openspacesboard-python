@@ -15,7 +15,6 @@ def get_sessions():
     :return: A json formatted list of sessions
     """
     sessions = ConferenceSession.query.all()
-<<<<<<< abc3dfa31fae98962be4aad9b2e88a5fbb88068f
 
     sessions_list = []
     for session in sessions:
@@ -28,10 +27,6 @@ def get_sessions():
         sessions_list.append(session)
 
     return jsonify({'sessions': sessions_list})
-=======
-    sessions = [dict(id=row.id, title=row.title, description=row.description, convener=row.convener, space_id=row.space_id) for row in sessions]
-    return jsonify({'sessions': sessions})
->>>>>>> Added primary keys to serialization
 
 
 @mod_session.route('/api/1.0/<int:session_id>', methods=['GET'])
