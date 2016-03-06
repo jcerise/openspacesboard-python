@@ -15,6 +15,7 @@ def get_sessions():
     :return: A json formatted list of sessions
     """
     sessions = ConferenceSession.query.all()
+<<<<<<< abc3dfa31fae98962be4aad9b2e88a5fbb88068f
 
     sessions_list = []
     for session in sessions:
@@ -27,6 +28,10 @@ def get_sessions():
         sessions_list.append(session)
 
     return jsonify({'sessions': sessions_list})
+=======
+    sessions = [dict(id=row.id, title=row.title, description=row.description, convener=row.convener, space_id=row.space_id) for row in sessions]
+    return jsonify({'sessions': sessions})
+>>>>>>> Added primary keys to serialization
 
 
 @mod_session.route('/api/1.0/<int:session_id>', methods=['GET'])
@@ -63,7 +68,7 @@ def create_session():
         db.session.add(session)
         db.session.commit()
 
-        session = dict(title=session.title, description=session.description, convener=session.convener, space_id=session.space_id)
+        session = dict(id=session.id, title=session.title, description=session.description, convener=session.convener, space_id=session.space_id)
         return jsonify({'session': session})
     except Exception as err:
         raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)

@@ -2,12 +2,10 @@ from datetime import datetime
 from time import strptime
 
 from flask import Blueprint, jsonify, request
-
 from osbp_app import InvalidUsage, db
 from osbp_app.mod_spaces.model import ConferenceSpace
 
 mod_space = Blueprint('spaces', __name__, url_prefix='/conference_spaces')
-
 
 @mod_space.route('/api/1.0', methods=['GET'])
 def get_spaces():
@@ -31,7 +29,7 @@ def get_space(space_id):
     space = ConferenceSpace.query.get(space_id)
 
     if space is not None:
-        space = dict(id=row.id, space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
+        space = dict(id=space.id, space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
                      start_time=space.start_time, end_time=space.end_time)
         return jsonify({'space': space})
     else:
@@ -54,7 +52,7 @@ def create_space():
         db.session.add(space)
         db.session.commit()
 
-        space = dict(space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
+        space = dict(id=space.id, space_name=space.space_name, location_id=space.location_id, event_date=space.event_date,
                      start_time=space.start_time, end_time=space.end_time)
         return jsonify({'space': space})
     except Exception as err:
@@ -110,6 +108,3 @@ def delete_space(space_id):
         return jsonify({"success": "true"})
     else:
         raise InvalidUsage('ConferenceSpace with ID: {} does not exist'.format(space_id), status_code=400)
-
-
-
