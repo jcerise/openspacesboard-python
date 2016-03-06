@@ -1,3 +1,6 @@
+from datetime import datetime
+from time import strptime
+
 from flask import Blueprint, jsonify, request
 
 from osbp_app import InvalidUsage, db
@@ -43,7 +46,10 @@ def create_space():
     """
     try:
         json = request.json
-        space = ConferenceSpace(json['space_name'], json['location_id'], json['event_date'], json['start_time'], json['end_time'])
+        event_date = datetime.strptime(json['event_date'], "%Y-%m-%d")
+        start_time = datetime.strptime(json['start_time'], "%Y-%m-%d %H:%M:%S")
+        end_time = datetime.strptime(json['end_time'], "%Y-%m-%d %H:%M:%S")
+        space = ConferenceSpace(json['space_name'], json['location_id'], event_date, start_time, end_time)
 
         db.session.add(space)
         db.session.commit()

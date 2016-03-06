@@ -5,7 +5,7 @@ class ConferenceSpace(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     space_name = db.Column(db.String(64), unique=True)
     location_id = db.Column(db.Integer, db.ForeignKey('conference_location.id'))
-    event_date = db.Column(db.Date)
+    event_date = db.Column(db.DateTime)
     start_time = db.Column(db.DateTime)
     end_time = db.Column(db.DateTime)
 
