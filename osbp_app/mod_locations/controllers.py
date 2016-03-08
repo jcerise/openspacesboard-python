@@ -46,7 +46,7 @@ def create_location():
         db.session.add(location)
         db.session.commit()
 
-        location = dict(location_name=location.name)
+        location = dict(id=location.id, location_name=location.name)
         return jsonify({'location': location})
     except Exception as err:
         raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)
