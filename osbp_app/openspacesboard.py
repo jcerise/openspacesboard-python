@@ -1,11 +1,27 @@
 import sqlite3
-from contextlib import closing
 
+from contextlib import closing
 from flask import Flask, g, jsonify, request, make_response, redirect, url_for, session
 from flask.ext.sqlalchemy import SQLAlchemy
+from flask.json import JSONEncoder
 from flask_oauthlib.client import OAuth
 
 app = Flask(__name__)
+
+class CustomJSONEncoder(JSONEncoder):
+    def default(self, obj):
+        try:
+            if isinstance(obj, datetime.date):
+                return obj.isoformat()
+            iterable = iter(obj)
+        except TypeError:
+            pass
+        else:
+            return list(iterable)
+        return JSONEncoder.default(self, obj)
+
+app.json_encoder = CustomJSONEncoder
+
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
@@ -57,4 +73,3 @@ def authorized():
 @github.tokengetter
 def get_github_oauth_token():
     return session.get('github_token')
-

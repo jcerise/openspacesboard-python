@@ -2,8 +2,10 @@ from flask import jsonify, request, Blueprint
 
 from osbp_app import InvalidUsage, db
 from osbp_app.mod_conference_sessions.models import ConferenceSession
+from flask.ext.cors import CORS
 
 mod_session = Blueprint('session', __name__, url_prefix='/conference_sessions')
+CORS(mod_session)
 
 
 @mod_session.route('/api/1.0', methods=['GET'])
@@ -61,7 +63,7 @@ def create_session():
         db.session.add(session)
         db.session.commit()
 
-        session = dict(title=session.title, description=session.description, convener=session.convener, space_id=session.space_id)
+        session = dict(id=session.id, title=session.title, description=session.description, convener=session.convener, space_id=session.space_id)
         return jsonify({'session': session})
     except Exception as err:
         raise InvalidUsage('Invalid request. Request json: {}. Error: {}'.format(json, err), status_code=400)
@@ -114,5 +116,3 @@ def delete_session(session_id):
         return jsonify({"success": "true"})
     else:
         raise InvalidUsage('ConferenceSession with ID: {} does not exist'.format(session_id), status_code=400)
-
-
